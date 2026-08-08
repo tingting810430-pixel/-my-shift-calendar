@@ -41,7 +41,7 @@ h1{font:500 28px 'Quicksand',Georgia,"Noto Serif TC",serif;color:var(--deep);mar
   background:#FAF7F2;
   border:1px solid var(--line);
   border-radius:10px;
-  padding:6px 3px;
+  padding:5px 3px;
   cursor:pointer;
   position:relative;
   transition:all .15s ease;
@@ -54,10 +54,10 @@ h1{font:500 28px 'Quicksand',Georgia,"Noto Serif TC",serif;color:var(--deep);mar
 .empty{background:transparent!important;border:0!important;pointer-events:none}
 .day.selected{outline:3px solid var(--deep);box-shadow:0 2px 8px #6c524540;z-index:2}
 
-/* 頂部區域：改成垂直排列，讓節日換到數字下面 */
+/* 第一點保留：頂部區域垂直排列，數字在上，節日在下 */
 .day-header{
   display:flex;
-  flex-direction:column;  /* 數字在上，節日在下 */
+  flex-direction:column;
   align-items:flex-start;
   width:100%;
   margin-bottom:2px;
@@ -73,7 +73,7 @@ h1{font:500 28px 'Quicksand',Georgia,"Noto Serif TC",serif;color:var(--deep);mar
 }
 .day.is-holiday .num{color:#b94a3e!important}
 
-/* 換到下面的節日/農曆字串 */
+/* 換到數字正下方的節日/農曆字串 */
 .lunar-info{
   font-size:9px;
   color:var(--ink);
@@ -82,7 +82,7 @@ h1{font:500 28px 'Quicksand',Georgia,"Noto Serif TC",serif;color:var(--deep);mar
   margin-top:2px;
   white-space:nowrap;
   overflow:hidden;
-  text-overflow:ellipsis; /* 若極極極長時依然安全護航 */
+  text-overflow:ellipsis;
   width:100%;
   text-align:left;
 }
@@ -92,21 +92,27 @@ h1{font:500 28px 'Quicksand',Georgia,"Noto Serif TC",serif;color:var(--deep);mar
   opacity:1;
 }
 
-/* 整格填滿顏色 (奶茶色系調校) */
-.c-mist{background:#D1E0E0!important}      /* 薄荷奶綠 - MIST */
-.c-cashmere{background:#E8CCA4!important}  /* 泰式奶茶 - CASHMERE */
-.c-olive{background:#C0C999!important}     /* 抹茶拿鐵 - OLIVE */
-.c-straw{background:#ECE09B!important}     /* 伯爵鮮奶 - STRAW */
+/* 第二點：膠囊班表標籤風格（參考圖片） */
+.badge{
+  width:100%;
+  padding:4px 0;
+  border-radius:12px;
+  font-size:11px;
+  font-weight:700;
+  text-align:center;
+  line-height:1;
+  margin-top:auto;
+  box-shadow:0 1px 3px rgba(0,0,0,0.06);
+}
 
-/* 休假與其他假別整格填滿 */
-.off{background:#E5BDC5!important}        /* 玫瑰奶茶 */
-.leave{background:#D3CBD5!important}      /* 芋香拿鐵 */
-.sick{background:#F7C1B5!important}       /* 蜜桃奶茶 */
-.other{background:#DCD1E8!important}      /* 薰衣草奶茶 */
+/* 膠囊背景顏色 */
+.bg-work-1{background:#8CE642;color:#1d4e00!important}   /* 亮綠色 11-21 */
+.bg-work-2{background:#A6F065;color:#205200!important}   /* 嫩綠色 9-18 */
+.bg-off{background:#C87AEE;color:#fff!important}         /* 紫色 休假/特休 */
+.bg-sick{background:#FF8C94;color:#fff!important}        /* 粉紅色 病假 */
+.bg-other{background:#7AD0EE;color:#003a4d!important}       /* 天藍色 其他 */
 
-/* 時間與備註文字排版 */
-.entry-text{font-size:10px;line-height:1.2;font-weight:700;text-align:center;color:var(--ink)!important;margin-top:auto;margin-bottom:auto}
-.note{font-size:9px;color:var(--ink)!important;opacity:0.85;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;max-width:100%}
+.note{font-size:9px;color:var(--ink)!important;opacity:0.85;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;max-width:100%}
 
 /* 底部展開面板 */
 .bottom-panel{position:fixed;bottom:0;left:0;right:0;background:var(--paper);border-top:1px solid var(--line);border-radius:20px 20px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -5px 25px #6c52451f;display:none;z-index:100}
@@ -124,14 +130,14 @@ h1{font:500 28px 'Quicksand',Georgia,"Noto Serif TC",serif;color:var(--deep);mar
 .btn-save{background:var(--deep);color:#fff}
 .btn-clear{background:#EADEC9;color:var(--deep)}
 
-@media(min-width:650px){.app{padding:30px 16px 240px}.cal{gap:8px}.week{gap:8px}.cal .day{min-height:110px;padding:8px}.entry-text{font-size:12px}}
+@media(min-width:650px){.app{padding:30px 16px 240px}.cal{gap:8px}.week{gap:8px}.cal .day{min-height:110px;padding:8px}.badge{font-size:12px;padding:5px 0}}
 </style>
 </head>
 <body>
 <div class="app">
 <div class="sub">MY SHIFT JOURNAL</div><h1>我的班表</h1>
 <div class="bar"><button id="prev">‹</button><div class="title"><b id="mt"></b><small>可單點多選或長按滑動選取日期</small></div><button id="next">›</button></div>
-<div class="week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+<div class="week"><span>週日</span><span>週一</span><span>週二</span><span>週三</span><span>週四</span><span>週五</span><span>週六</span></div>
 <div class="cal" id="cal"></div>
 </div>
 
@@ -150,10 +156,10 @@ h1{font:500 28px 'Quicksand',Georgia,"Noto Serif TC",serif;color:var(--deep);mar
   </div>
 
   <div class="time-group" id="timeGroup">
-    <div class="chip active" data-time="09:00 18:00">09:00 18:00</div>
-    <div class="chip" data-time="10:00 19:00">10:00 19:00</div>
-    <div class="chip" data-time="11:00 21:00">11:00 21:00</div>
-    <div class="chip" data-time="12:00 21:00">12:00 21:00</div>
+    <div class="chip active" data-time="09:00 18:00">09:00 18:00 (9-18)</div>
+    <div class="chip" data-time="10:00 19:00">10:00 19:00 (10-19)</div>
+    <div class="chip" data-time="11:00 21:00">11:00 21:00 (11-21)</div>
+    <div class="chip" data-time="12:00 21:00">12:00 21:00 (12-21)</div>
   </div>
 
   <input type="text" class="note-input" id="noteInput" placeholder="填寫備註（可不填）">
@@ -172,11 +178,23 @@ let currentType="work", currentTime="09:00 18:00";
 let dragStartDay = null, isDragging = false;
 let startX = 0, startY = 0;
 
+/* 將完整的時間轉成精簡格式，例如 "09:00 18:00" -> "9-18" */
+function formatShiftTime(shiftStr) {
+  if (!shiftStr) return "";
+  let parts = shiftStr.split(" ");
+  if (parts.length === 2) {
+    let start = parseInt(parts[0].split(":")[0], 10);
+    let end = parseInt(parts[1].split(":")[0], 10);
+    return `${start}-${end}`;
+  }
+  return shiftStr;
+}
+
 const SHIFT_COLORS = {
-  "09:00 18:00": "c-mist",
-  "10:00 19:00": "c-cashmere",
-  "11:00 21:00": "c-olive",
-  "12:00 21:00": "c-straw"
+  "09:00 18:00": "bg-work-2",
+  "10:00 19:00": "bg-work-1",
+  "11:00 21:00": "bg-work-1",
+  "12:00 21:00": "bg-work-2"
 };
 
 const $=x=>document.getElementById(x),pad=x=>String(x).padStart(2,"0"),id=(y,m,d)=>`${y}-${pad(m+1)}-${pad(d)}`;
@@ -273,15 +291,11 @@ function render(){
     let rightText = solarHoliday || lunarInfo.festival || term || lunarInfo.text;
     let isHighlight = !!solarHoliday || !!lunarInfo.festival || !!term;
 
-    let colorClass = "";
-    if(r){
-      colorClass = r.type==="work" ? (SHIFT_COLORS[r.shift] || "c-mist") : r.type;
-    }
-
-    e.className="day "+colorClass+(isSelected?" selected":"")+(isHighlight?" is-holiday":"");
+    e.className="day"+(isSelected?" selected":"")+(isHighlight?" is-holiday":"");
     e.dataset.day = d;
     e.dataset.key = dateKey;
     
+    /* 日期數字在上，節日在正下方 */
     let html = `
       <div class="day-header">
         <span class="num">${d}</span>
@@ -289,10 +303,29 @@ function render(){
       </div>
     `;
 
+    /* 班表顯示為膠囊標籤 */
     if(r){
-      let text=r.type==="work"?r.shift:{off:"休假",leave:"特休",sick:"病假",other:"其他"}[r.type];
-      html += `<div class="entry-text">${text}</div>`+(r.note?`<div class="note">${esc(r.note)}</div>`:"");
+      let text = "";
+      let colorClass = "";
+      
+      if(r.type === "work"){
+        text = formatShiftTime(r.shift);
+        colorClass = SHIFT_COLORS[r.shift] || "bg-work-1";
+      } else if(r.type === "off" || r.type === "leave"){
+        text = "休";
+        colorClass = "bg-off";
+      } else if(r.type === "sick"){
+        text = "病假";
+        colorClass = "bg-sick";
+      } else {
+        text = "其他";
+        colorClass = "bg-other";
+      }
+
+      html += `<div class="badge ${colorClass}">${text}</div>`;
+      if(r.note) html += `<div class="note">${esc(r.note)}</div>`;
     }
+
     e.innerHTML = html;
     $("cal").appendChild(e);
   }
