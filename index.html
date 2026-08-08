@@ -92,7 +92,7 @@ h1{font:500 28px 'Quicksand',Georgia,"Noto Serif TC",serif;color:var(--deep);mar
   opacity:1;
 }
 
-/* 膠囊班表標籤風格（移除 margin-top: auto，使其向上靠） */
+/* 膠囊班表標籤風格（向上靠） */
 .badge{
   width:100%;
   padding:4px 0;
@@ -101,7 +101,7 @@ h1{font:500 28px 'Quicksand',Georgia,"Noto Serif TC",serif;color:var(--deep);mar
   font-weight:700;
   text-align:center;
   line-height:1;
-  margin-top:3px; /* 緊貼在上方的農曆/節日下方 */
+  margin-top:3px;
   box-shadow:0 1px 3px rgba(0,0,0,0.04);
 }
 
@@ -149,7 +149,7 @@ h1{font:500 28px 'Quicksand',Georgia,"Noto Serif TC",serif;color:var(--deep);mar
 <div class="bottom-panel" id="panel">
   <div class="panel-head">
     <span id="batchCount">已選擇 0 天</span>
-    <button class="panel-cancel" id="cancelBatch">取消選擇</button>
+    <button class="panel-cancel" id="cancelBatch">完成／收起面板</button>
   </div>
   
   <div class="type-group" id="typeGroup">
@@ -183,7 +183,7 @@ let currentType="work", currentTime="09:00 18:00";
 let dragStartDay = null, isDragging = false;
 let startX = 0, startY = 0;
 
-/* 將完整的時間轉成精簡格式，例如 "09:00 18:00" -> "9-18" */
+/* 時間轉精簡格式 */
 function formatShiftTime(shiftStr) {
   if (!shiftStr) return "";
   let parts = shiftStr.split(" ");
@@ -300,7 +300,6 @@ function render(){
     e.dataset.day = d;
     e.dataset.key = dateKey;
     
-    /* 日期數字在上，節日在正下方 */
     let html = `
       <div class="day-header">
         <span class="num">${d}</span>
@@ -308,7 +307,6 @@ function render(){
       </div>
     `;
 
-    /* 班表標籤貼在農曆/節日下方 */
     if(r){
       let text = "";
       let colorClass = "";
@@ -394,6 +392,7 @@ window.addEventListener("pointercancel", () => {
   isDragging = false;
 });
 
+/* 更新面板顯示邏輯 */
 function updatePanel(){
   let count=selectedSet.size;
   if(count>0){
@@ -421,8 +420,13 @@ document.querySelectorAll("#timeGroup .chip").forEach(chip=>{
   }
 });
 
-$("cancelBatch").onclick=()=>{selectedSet.clear();render()};
+/* 關閉／收起面板 */
+$("cancelBatch").onclick=()=>{
+  selectedSet.clear();
+  render();
+};
 
+/* 儲存後自動收起面板 */
 $("saveBtn").onclick=()=>{
   let noteText=$("noteInput").value.trim();
   selectedSet.forEach(k=>{
@@ -434,6 +438,7 @@ $("saveBtn").onclick=()=>{
   render();
 };
 
+/* 清除後自動收起面板 */
 $("clearBtn").onclick=()=>{
   selectedSet.forEach(k=>{ delete D[k]; });
   localStorage.setItem(K,JSON.stringify(D));
