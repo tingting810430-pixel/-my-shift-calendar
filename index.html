@@ -37,7 +37,7 @@ body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink
 }
 .header-title h1{font:500 26px 'Quicksand',Georgia,"Noto Serif TC",serif;color:var(--deep);margin:0}.sub{font-size:11px;letter-spacing:.18em;color:var(--main)}
 
-/* 模式切換按鈕 (純文字風格) */
+/* 模式切換按鈕 */
 .mode-toggle{
   display:inline-flex;
   align-items:center;
@@ -233,13 +233,12 @@ V.setDate(1);
 let selectedSet = new Set();
 let currentType = "work";
 let currentTime = "09:00 18:00";
-let isEditMode = false; // 預設為鎖定模式
+let isEditMode = false;
 
 let dragStartDay = null;
 let isDragging = false;
 let startX = 0, startY = 0;
 
-/* 模式切換邏輯 (純文字) */
 $("modeBtn").onclick = () => {
   isEditMode = !isEditMode;
   if (isEditMode) {
@@ -255,7 +254,6 @@ $("modeBtn").onclick = () => {
   render();
 };
 
-/* 時間精簡格式 */
 function formatShiftTime(shiftStr) {
   if (!shiftStr) return "";
   let parts = shiftStr.split(" ");
@@ -276,7 +274,6 @@ const SHIFT_COLORS = {
 
 function esc(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
 
-/* 農曆與農曆節日計算 */
 function getLunarDetails(y, m, d) {
   let date = new Date(y, m, d);
   let lunarObj = { text: "", festival: "" };
@@ -321,7 +318,6 @@ function getLunarDetails(y, m, d) {
   return lunarObj;
 }
 
-/* 二十四節氣計算 */
 const SOLAR_TERMS = ["小寒","大寒","立春","雨水","驚蟄","春分","清明","穀雨","立夏","小滿","芒種","夏至","小暑","大暑","立秋","處暑","白露","秋分","寒露","霜降","立冬","小雪","大雪","冬至"];
 function getSolarTerm(y, m, d) {
   const termInfo = [0,21208,42467,63836,85337,107014,128867,150921,173149,195551,218072,240693,263343,285989,308563,331033,353350,375447,397305,418910,440228,461222,481851,501988];
@@ -332,7 +328,6 @@ function getSolarTerm(y, m, d) {
   return "";
 }
 
-/* 陽曆節日 */
 function getSolarHoliday(m, d) {
   let key = `${pad(m + 1)}-${pad(d)}`;
   let holidays = {
@@ -385,11 +380,14 @@ function render(){
       if(r.type === "work"){
         text = formatShiftTime(r.shift);
         colorClass = SHIFT_COLORS[r.shift] || "c-mist";
-      } else if(r.type === "off" || r.type === "leave"){
+      } else if(r.type === "off"){
         text = "休";
-        colorClass = r.type;
+        colorClass = "off";
+      } else if(r.type === "leave"){
+        text = "特";
+        colorClass = "leave";
       } else if(r.type === "sick"){
-        text = "病假";
+        text = "病";
         colorClass = "sick";
       } else {
         text = "其他";
