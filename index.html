@@ -37,14 +37,14 @@ body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink
 }
 .header-title h1{font:500 26px 'Quicksand',Georgia,"Noto Serif TC",serif;color:var(--deep);margin:0}.sub{font-size:11px;letter-spacing:.18em;color:var(--main)}
 
-/* 模式切換按鈕 */
+/* 模式切換按鈕 (純文字風格) */
 .mode-toggle{
   display:inline-flex;
   align-items:center;
-  gap:4px;
+  justify-content:center;
   background:var(--soft);
   border:1px solid var(--line);
-  padding:6px 14px;
+  padding:6px 16px;
   border-radius:20px;
   font-size:13px;
   font-weight:700;
@@ -174,7 +174,7 @@ body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink
       <h1>我的班表</h1>
     </div>
     <button class="mode-toggle" id="modeBtn">
-      <span id="modeIcon">🔒</span> <span id="modeText">鎖定模式</span>
+      <span id="modeText">鎖定模式</span>
     </button>
   </div>
 
@@ -221,7 +221,6 @@ body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink
 </div>
 
 <script>
-/* 元素選擇工具函數 */
 const $ = x => document.getElementById(x);
 const pad = x => String(x).padStart(2, "0");
 const id = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
@@ -234,23 +233,21 @@ V.setDate(1);
 let selectedSet = new Set();
 let currentType = "work";
 let currentTime = "09:00 18:00";
-let isEditMode = false; // 預設為鎖定瀏覽模式
+let isEditMode = false; // 預設為鎖定模式
 
 let dragStartDay = null;
 let isDragging = false;
 let startX = 0, startY = 0;
 
-/* 模式切換邏輯 */
+/* 模式切換邏輯 (純文字) */
 $("modeBtn").onclick = () => {
   isEditMode = !isEditMode;
   if (isEditMode) {
     $("modeBtn").classList.add("is-edit");
-    $("modeIcon").textContent = "✏️";
-    $("modeText").textContent = "編輯中";
+    $("modeText").textContent = "編輯模式";
     $("hintText").textContent = "單點或滑動選取日期編輯班表";
   } else {
     $("modeBtn").classList.remove("is-edit");
-    $("modeIcon").textContent = "🔒";
     $("modeText").textContent = "鎖定模式";
     $("hintText").textContent = "已鎖定，點擊右上角解鎖編輯";
     selectedSet.clear();
