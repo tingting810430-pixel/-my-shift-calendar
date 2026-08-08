@@ -62,7 +62,7 @@ body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink
 .bar{display:flex;align-items:center;justify-content:space-between;background:#FAF7F2f2;border:1px solid var(--line);border-radius:18px;padding:10px 12px;box-shadow:0 8px 25px #6c524514}
 .bar button{border:0;background:var(--soft);color:var(--deep);width:40px;height:40px;border-radius:50%;font-size:22px;cursor:pointer}.title{text-align:center}.title b{font:500 23px 'Quicksand',Georgia,"Noto Serif TC",serif}.title small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
 
-/* 頂部固定內嵌控制區（無套用按鈕，即即畫） */
+/* 頂部固定內嵌控制區（直覺畫筆） */
 .control-panel{
   display:none;
   background:#FAF7F2f2;
@@ -159,6 +159,7 @@ body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink
 .c-cashmere{background:#E8CCA4!important;color:var(--ink)!important}
 .c-olive{background:#C0C999!important;color:var(--ink)!important}
 .c-straw{background:#ECE09B!important;color:var(--ink)!important}
+.c-peach{background:#F0D0C2!important;color:var(--ink)!important}
 
 .off{background:#E5BDC5!important;color:var(--ink)!important}
 .leave{background:#D3CBD5!important;color:var(--ink)!important}
@@ -205,6 +206,7 @@ body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink
     <div class="time-group" id="timeGroup">
       <div class="chip active" data-time="09:00 18:00">09:00 18:00 (9-18)</div>
       <div class="chip" data-time="10:00 19:00">10:00 19:00 (10-19)</div>
+      <div class="chip" data-time="10:00 21:00">10:00 21:00 (10-21)</div>
       <div class="chip" data-time="11:00 21:00">11:00 21:00 (11-21)</div>
       <div class="chip" data-time="12:00 21:00">12:00 21:00 (12-21)</div>
     </div>
@@ -266,6 +268,7 @@ function formatShiftTime(shiftStr) {
 const SHIFT_COLORS = {
   "09:00 18:00": "c-mist",
   "10:00 19:00": "c-cashmere",
+  "10:00 21:00": "c-peach",
   "11:00 21:00": "c-olive",
   "12:00 21:00": "c-straw"
 };
