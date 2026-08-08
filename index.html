@@ -59,8 +59,6 @@ h1{font:500 28px Georgia,"Noto Serif TC",serif;color:var(--deep);margin:4px 0 16
 
 .num{font:16px Georgia,serif;color:#1A1A1A!important;font-weight:600;line-height:1}
 .day.is-holiday .num{color:#c53030!important}
-/* 今日標記：改用質感深藍灰色 (#334155)，不再是黑色 */
-.today .num{display:inline-flex;background:var(--deep);color:#fff!important;width:20px;height:20px;border-radius:50%;align-items:center;justify-content:center}
 
 .lunar-info{
   font-size:10px;
@@ -206,7 +204,7 @@ function getHoliday(m, d) {
 }
 
 function render(){
-  let y=V.getFullYear(),m=V.getMonth(),first=new Date(y,m,1).getDay(),last=new Date(y,m+1,0).getDate(),t=new Date();
+  let y=V.getFullYear(),m=V.getMonth(),first=new Date(y,m,1).getDay(),last=new Date(y,m+1,0).getDate();
   $("mt").textContent=`${y} 年 ${m+1} 月`;$("cal").innerHTML="";
   for(let i=0;i<first;i++)$("cal").appendChild(Object.assign(document.createElement("div"),{className:"day empty"}));
   
@@ -229,7 +227,7 @@ function render(){
       colorClass = r.type==="work" ? (SHIFT_COLORS[r.shift] || "c-mist") : r.type;
     }
 
-    e.className="day "+colorClass+(y==t.getFullYear()&&m==t.getMonth()&&d==t.getDate()?" today":"")+(isSelected?" selected":"")+(isHighlight?" is-holiday":"");
+    e.className="day "+colorClass+(isSelected?" selected":"")+(isHighlight?" is-holiday":"");
     e.dataset.day = d;
     e.dataset.key = dateKey;
     
