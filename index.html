@@ -31,11 +31,11 @@ h1{font:500 28px Georgia,"Noto Serif TC",serif;color:var(--deep);margin:4px 0 16
 .week,.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .week{margin:14px 0 7px;color:var(--muted);font-size:11px;text-align:center}
 .cal .day{
-  min-height:92px;
+  min-height:96px;
   background:#FAFBFB;
   border:1px solid var(--line);
   border-radius:10px;
-  padding:6px 4px;
+  padding:4px 2px;
   cursor:pointer;
   position:relative;
   transition:all .15s ease;
@@ -49,11 +49,14 @@ h1{font:500 28px Georgia,"Noto Serif TC",serif;color:var(--deep);margin:4px 0 16
 .empty{background:transparent!important;border:0!important;pointer-events:none}
 .day.selected{outline:3px solid var(--deep);box-shadow:0 2px 8px #33415540;z-index:2}
 
-/* 日期數字 */
-.num{font:16px Georgia,serif;color:#1A1A1A!important;font-weight:600;margin-bottom:4px}
-.today .num{display:inline-flex;background:#1A1A1A;color:#fff!important;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}
+/* 假日/節氣標籤與數字排版 */
+.holiday-tag{font-size:9px;color:#c53030;font-weight:700;line-height:1;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.num{font:16px Georgia,serif;color:#1A1A1A!important;font-weight:600;line-height:1}
+.day.is-holiday .num{color:#c53030!important}
+.today .num{display:inline-flex;background:#1A1A1A;color:#fff!important;width:22px;height:22px;border-radius:50%;align-items:center;justify-content:center}
+.lunar{font-size:9px;color:#1A1A1A;opacity:0.65;margin-top:2px;line-height:1}
 
-/* 整格填滿顏色 (套用圖片指定 4 色) */
+/* 整格填滿顏色 (四色) */
 .c-mist{background:#BED3D4!important}      /* 09:00 18:00 - MIST */
 .c-cashmere{background:#E8CAA4!important}  /* 10:00 19:00 - CASHMERE */
 .c-olive{background:#A1B872!important}     /* 11:00 21:00 - OLIVE */
@@ -66,8 +69,8 @@ h1{font:500 28px Georgia,"Noto Serif TC",serif;color:var(--deep);margin:4px 0 16
 .other{background:#DDD6FE!important}
 
 /* 時間與備註文字排版 */
-.entry-text{font-size:10px;line-height:1.3;font-weight:700;text-align:center;color:#1A1A1A!important;margin-top:auto;margin-bottom:auto}
-.note{font-size:9px;color:#1A1A1A!important;opacity:0.8;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;max-width:100%}
+.entry-text{font-size:10px;line-height:1.2;font-weight:700;text-align:center;color:#1A1A1A!important;margin-top:auto;margin-bottom:auto}
+.note{font-size:9px;color:#1A1A1A!important;opacity:0.85;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;max-width:100%}
 
 /* 底部展開面板 */
 .bottom-panel{position:fixed;bottom:0;left:0;right:0;background:var(--paper);border-top:1px solid var(--line);border-radius:20px 20px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -5px 25px #00000014;display:none;z-index:100}
@@ -85,7 +88,7 @@ h1{font:500 28px Georgia,"Noto Serif TC",serif;color:var(--deep);margin:4px 0 16
 .btn-save{background:var(--deep);color:#fff}
 .btn-clear{background:#E6ECE8;color:var(--deep)}
 
-@media(min-width:650px){.app{padding:30px 16px 240px}.cal{gap:8px}.week{gap:8px}.cal .day{min-height:110px;padding:10px}.entry-text{font-size:12px}}
+@media(min-width:650px){.app{padding:30px 16px 240px}.cal{gap:8px}.week{gap:8px}.cal .day{min-height:110px;padding:8px}.entry-text{font-size:12px}}
 </style>
 </head>
 <body>
@@ -143,6 +146,111 @@ const SHIFT_COLORS = {
 const $=x=>document.getElementById(x),pad=x=>String(x).padStart(2,"0"),id=(y,m,d)=>`${y}-${pad(m+1)}-${pad(d)}`;
 function esc(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
 
+/* --- 農曆、國定假日、節氣核心算法 --- */
+const LUNAR_INFO = [
+  0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,
+  0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,
+  0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,
+  0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,
+  0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,
+  0x06ca0,0x0b550,0x15355,0x04da0,0x0a5d0,0x14573,0x052d0,0x0a9a8,0x0e950,0x06aa0,
+  0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,
+  0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b6a0,0x195a6,
+  0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,
+  0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x055c0,0x0ab60,0x096d5,0x092e0,
+  0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cad5,
+  0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,
+  0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,
+  0x05aa0,0x076a3,0x096d0,0x04afb,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,
+  0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0
+];
+
+const SOLAR_TERMS = ["小寒","大寒","立春","雨水","驚蟄","春分","清明","穀雨","立夏","小滿","芒種","夏至","小暑","大暑","立秋","處暑","白露","秋分","寒露","霜降","立冬","小雪","大雪","冬至"];
+
+function getSolarTerm(y, m, d) {
+  const termInfo = [0,21208,42467,63836,85337,107014,128867,150921,173149,195551,218072,240693,263343,285989,308563,331033,353350,375447,397305,418910,440228,461222,481851,501988];
+  let offDate = new Date((31556925974.7 * (y - 1900) + termInfo[m * 2] * 60000) + Date.UTC(1900, 0, 6, 2, 5));
+  if (offDate.getUTCDate() === d) return SOLAR_TERMS[m * 2];
+  offDate = new Date((31556925974.7 * (y - 1900) + termInfo[m * 2 + 1] * 60000) + Date.UTC(1900, 0, 6, 2, 5));
+  if (offDate.getUTCDate() === d) return SOLAR_TERMS[m * 2 + 1];
+  return "";
+}
+
+function getLunar(y, m, d) {
+  let date = new Date(y, m, d);
+  let baseDate = new Date(1900, 0, 31);
+  let offset = Math.floor((date - baseDate) / 86400000);
+  let i, temp = 0, leap = 0;
+  
+  for (i = 1900; i < 2100 && offset > 0; i++) {
+    let days = 348;
+    for (let j = 0x8000; j > 0x8; j >>= 1) days += (LUNAR_INFO[i - 1900] & j) ? 1 : 0;
+    leap = (LUNAR_INFO[i - 1900] & 0xf);
+    if (leap > 0) {
+      days += (LUNAR_INFO[i - 1900] & 0x10000) ? 30 : 29;
+    }
+    offset -= days;
+  }
+  if (offset < 0) { offset += days; i--; }
+  
+  let lunarYear = i;
+  leap = (LUNAR_INFO[lunarYear - 1900] & 0xf);
+  let isLeap = false;
+  
+  for (i = 1; i < 13 && offset > 0; i++) {
+    if (leap > 0 && i == (leap + 1) && !isLeap) {
+      --i; isLeap = true;
+      temp = (LUNAR_INFO[lunarYear - 1900] & 0x10000) ? 30 : 29;
+    } else {
+      temp = 29;
+      for (let j = 0x8000; j > 0x8; j >>= 1) {
+        if ((LUNAR_INFO[lunarYear - 1900] & j) && (i == ((j==0x8000?1:j==0x4000?2:j==0x2000?3:j==0x1000?4:j==0x800?5:j==0x400?6:j==0x200?7:j==0x100?8:j==0x80?9:j==0x40?10:j==0x20?11:12)))) temp = 30;
+      }
+    }
+    if (isLeap && i == (leap + 1)) isLeap = false;
+    offset -= temp;
+  }
+  if (offset == 0 && leap > 0 && i == leap + 1) {
+    if (isLeap) isLeap = false;
+    else { isLeap = true; --i; }
+  }
+  if (offset < 0) { offset += temp; --i; }
+  
+  let lunarMonth = i;
+  let lunarDay = offset + 1;
+  
+  const monthNames = ["","正","二","三","四","五","六","七","八","九","十","十一","臘"];
+  const dayNames = ["","初一","初二","初三","初四","初五","初六","初七","初八","初九","初十","十一","十二","十三","十四","十五","十六","十七","十八","十九","二十","廿一","廿二","廿三","廿四","廿五","廿六","廿七","廿八","廿九","三十"];
+  
+  let lunarStr = lunarDay === 1 ? (monthNames[lunarMonth] + "月") : dayNames[lunarDay];
+  return { lunarYear, lunarMonth, lunarDay, lunarStr, isLeap };
+}
+
+function getHoliday(y, m, d, lunar) {
+  let keyM = pad(m + 1), keyD = pad(d);
+  let solarKey = `${keyM}-${keyD}`;
+  let solarHolidays = {
+    "01-01": "元旦", "02-28": "和平紀念日", "04-04": "兒童節",
+    "05-01": "勞動節", "10-10": "國慶日"
+  };
+  if (solarHolidays[solarKey]) return solarHolidays[solarKey];
+
+  if (!lunar.isLeap) {
+    let lm = lunar.lunarMonth, ld = lunar.lunarDay;
+    if (lm === 12 && (ld === 29 || ld === 30)) return "除夕";
+    if (lm === 1 && ld === 1) return "春節";
+    if (lm === 1 && ld === 2) return "回娘家";
+    if (lm === 1 && ld === 3) return "初三";
+    if (lm === 1 && ld === 15) return "元宵節";
+    if (lm === 5 && ld === 5) return "端午節";
+    if (lm === 7 && ld === 7) return "七夕";
+    if (lm === 7 && ld === 15) return "中元節";
+    if (lm === 8 && ld === 15) return "中秋節";
+    if (lm === 9 && ld === 9) return "重陽節";
+  }
+  return "";
+}
+
 function render(){
   let y=V.getFullYear(),m=V.getMonth(),first=new Date(y,m,1).getDay(),last=new Date(y,m+1,0).getDate(),t=new Date();
   $("mt").textContent=`${y} 年 ${m+1} 月`;$("cal").innerHTML="";
@@ -154,16 +262,26 @@ function render(){
     let r=D[dateKey];
     let isSelected=selectedSet.has(dateKey);
     
+    let lunar = getLunar(y, m, d);
+    let term = getSolarTerm(y, m, d);
+    let holiday = getHoliday(y, m, d, lunar);
+    let isNationalHoliday = !!holiday;
+
+    if (!holiday && term) holiday = term;
+
     let colorClass = "";
     if(r){
       colorClass = r.type==="work" ? (SHIFT_COLORS[r.shift] || "c-mist") : r.type;
     }
 
-    e.className="day "+colorClass+(y==t.getFullYear()&&m==t.getMonth()&&d==t.getDate()?" today":"")+(isSelected?" selected":"");
+    e.className="day "+colorClass+(y==t.getFullYear()&&m==t.getMonth()&&d==t.getDate()?" today":"")+(isSelected?" selected":"")+(isNationalHoliday?" is-holiday":"");
     e.dataset.day = d;
     e.dataset.key = dateKey;
     
-    let html = `<div class="num">${d}</div>`;
+    let html = holiday ? `<div class="holiday-tag">${holiday}</div>` : `<div class="holiday-tag">&nbsp;</div>`;
+    html += `<div class="num">${d}</div>`;
+    html += `<div class="lunar">${lunar.lunarStr}</div>`;
+
     if(r){
       let text=r.type==="work"?r.shift:{off:"休假",leave:"特休",sick:"病假",other:"其他"}[r.type];
       html += `<div class="entry-text">${text}</div>`+(r.note?`<div class="note">${esc(r.note)}</div>`:"");
