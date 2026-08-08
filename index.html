@@ -196,7 +196,7 @@ body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink
   <div class="week"><span>週日</span><span>週一</span><span>週二</span><span>週三</span><span>週四</span><span>週五</span><span>週六</span></div>
   <div class="cal" id="cal"></div>
 
-  <!-- 內嵌於月曆下方（紅圈處）的選項控制區 -->
+  <!-- 內嵌於月曆正下方的選項控制區 -->
   <div class="control-panel" id="controlPanel">
     <div class="type-group" id="typeGroup">
       <div class="chip active" data-type="work">上班</div>
@@ -215,7 +215,7 @@ body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink
 
     <div class="action-row">
       <input type="text" class="note-input" id="noteInput" placeholder="備註（選填）">
-      <button class="btn-action btn-clear" id="clearBtn">清除</button>
+      <button class="btn-action btn-clear" id="clearBtn">清除紀錄</button>
       <button class="btn-action btn-save" id="saveBtn">套用 (<span id="batchCount">0</span>)</button>
     </div>
   </div>
@@ -246,7 +246,7 @@ $("modeBtn").onclick = () => {
   if (isEditMode) {
     $("modeBtn").classList.add("is-edit");
     $("modeText").textContent = "編輯模式";
-    $("hintText").textContent = "單點或滑動日期後，至下方點擊套用";
+    $("hintText").textContent = "單點或滑動日期後，至下方點擊套用或清除";
     $("controlPanel").classList.add("show");
   } else {
     $("modeBtn").classList.remove("is-edit");
