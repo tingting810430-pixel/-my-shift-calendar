@@ -48,13 +48,13 @@ h1{font:500 28px 'Quicksand',Georgia,"Noto Serif TC",serif;color:var(--deep);mar
   touch-action:none;
   display:flex;
   flex-direction:column;
-  justify-content:flex-start;
+  justify-content:flex-start; /* 讓所有內容向上靠攏 */
   color:var(--ink)!important;
 }
 .empty{background:transparent!important;border:0!important;pointer-events:none}
 .day.selected{outline:3px solid var(--deep);box-shadow:0 2px 8px #6c524540;z-index:2}
 
-/* 第一點保留：頂部區域垂直排列，數字在上，節日在下 */
+/* 頂部區域垂直排列，數字在上，節日在下 */
 .day-header{
   display:flex;
   flex-direction:column;
@@ -92,7 +92,7 @@ h1{font:500 28px 'Quicksand',Georgia,"Noto Serif TC",serif;color:var(--deep);mar
   opacity:1;
 }
 
-/* 第二點：膠囊班表標籤風格（參考圖片） */
+/* 膠囊班表標籤風格（移除 margin-top: auto，使其向上靠） */
 .badge{
   width:100%;
   padding:4px 0;
@@ -101,16 +101,21 @@ h1{font:500 28px 'Quicksand',Georgia,"Noto Serif TC",serif;color:var(--deep);mar
   font-weight:700;
   text-align:center;
   line-height:1;
-  margin-top:auto;
-  box-shadow:0 1px 3px rgba(0,0,0,0.06);
+  margin-top:3px; /* 緊貼在上方的農曆/節日下方 */
+  box-shadow:0 1px 3px rgba(0,0,0,0.04);
 }
 
-/* 膠囊背景顏色 */
-.bg-work-1{background:#8CE642;color:#1d4e00!important}   /* 亮綠色 11-21 */
-.bg-work-2{background:#A6F065;color:#205200!important}   /* 嫩綠色 9-18 */
-.bg-off{background:#C87AEE;color:#fff!important}         /* 紫色 休假/特休 */
-.bg-sick{background:#FF8C94;color:#fff!important}        /* 粉紅色 病假 */
-.bg-other{background:#7AD0EE;color:#003a4d!important}       /* 天藍色 其他 */
+/* 原始奶茶色系配色 */
+.c-mist{background:#D1E0E0!important;color:var(--ink)!important}      /* 薄荷奶綠 - MIST */
+.c-cashmere{background:#E8CCA4!important;color:var(--ink)!important}  /* 泰式奶茶 - CASHMERE */
+.c-olive{background:#C0C999!important;color:var(--ink)!important}     /* 抹茶拿鐵 - OLIVE */
+.c-straw{background:#ECE09B!important;color:var(--ink)!important}     /* 伯爵鮮奶 - STRAW */
+
+/* 休假與其他假別原始配色 */
+.off{background:#E5BDC5!important;color:var(--ink)!important}        /* 玫瑰奶茶 */
+.leave{background:#D3CBD5!important;color:var(--ink)!important}      /* 芋香拿鐵 */
+.sick{background:#F7C1B5!important;color:var(--ink)!important}       /* 蜜桃奶茶 */
+.other{background:#DCD1E8!important;color:var(--ink)!important}      /* 薰衣草奶茶 */
 
 .note{font-size:9px;color:var(--ink)!important;opacity:0.85;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;max-width:100%}
 
@@ -191,10 +196,10 @@ function formatShiftTime(shiftStr) {
 }
 
 const SHIFT_COLORS = {
-  "09:00 18:00": "bg-work-2",
-  "10:00 19:00": "bg-work-1",
-  "11:00 21:00": "bg-work-1",
-  "12:00 21:00": "bg-work-2"
+  "09:00 18:00": "c-mist",
+  "10:00 19:00": "c-cashmere",
+  "11:00 21:00": "c-olive",
+  "12:00 21:00": "c-straw"
 };
 
 const $=x=>document.getElementById(x),pad=x=>String(x).padStart(2,"0"),id=(y,m,d)=>`${y}-${pad(m+1)}-${pad(d)}`;
@@ -303,23 +308,23 @@ function render(){
       </div>
     `;
 
-    /* 班表顯示為膠囊標籤 */
+    /* 班表標籤貼在農曆/節日下方 */
     if(r){
       let text = "";
       let colorClass = "";
       
       if(r.type === "work"){
         text = formatShiftTime(r.shift);
-        colorClass = SHIFT_COLORS[r.shift] || "bg-work-1";
+        colorClass = SHIFT_COLORS[r.shift] || "c-mist";
       } else if(r.type === "off" || r.type === "leave"){
         text = "休";
-        colorClass = "bg-off";
+        colorClass = r.type;
       } else if(r.type === "sick"){
         text = "病假";
-        colorClass = "bg-sick";
+        colorClass = "sick";
       } else {
         text = "其他";
-        colorClass = "bg-other";
+        colorClass = "other";
       }
 
       html += `<div class="badge ${colorClass}">${text}</div>`;
