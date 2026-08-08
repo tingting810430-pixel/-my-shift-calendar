@@ -9,6 +9,10 @@
 <meta name="apple-mobile-web-app-title" content="我的班表">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
+<!-- 載入可愛質感數字字體 Quicksand -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
 <title>我的班表</title>
 <style>
 :root{
@@ -23,9 +27,9 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
 body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC",sans-serif}
 .app{max-width:980px;margin:auto;padding:calc(18px + env(safe-area-inset-top)) 10px calc(240px + env(safe-area-inset-bottom))}
-h1{font:500 28px Georgia,"Noto Serif TC",serif;color:var(--deep);margin:4px 0 16px}.sub{font-size:11px;letter-spacing:.18em;color:var(--main)}
+h1{font:500 28px 'Quicksand',Georgia,"Noto Serif TC",serif;color:var(--deep);margin:4px 0 16px}.sub{font-size:11px;letter-spacing:.18em;color:var(--main)}
 .bar{display:flex;align-items:center;justify-content:space-between;background:#FAF7F2f2;border:1px solid var(--line);border-radius:18px;padding:10px 12px;box-shadow:0 8px 25px #6c524514}
-.bar button{border:0;background:var(--soft);color:var(--deep);width:40px;height:40px;border-radius:50%;font-size:22px;cursor:pointer}.title{text-align:center}.title b{font:500 23px Georgia,"Noto Serif TC",serif}.title small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.bar button{border:0;background:var(--soft);color:var(--deep);width:40px;height:40px;border-radius:50%;font-size:22px;cursor:pointer}.title{text-align:center}.title b{font:500 23px 'Quicksand',Georgia,"Noto Serif TC",serif}.title small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
 
 /* 日曆表格 */
 .week,.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
@@ -57,7 +61,14 @@ h1{font:500 28px Georgia,"Noto Serif TC",serif;color:var(--deep);margin:4px 0 16
   margin-bottom:4px;
 }
 
-.num{font:16px Georgia,serif;color:var(--ink)!important;font-weight:600;line-height:1}
+/* 替換為 Quicksand 圓潤數字字體 */
+.num{
+  font-family:'Quicksand', -apple-system, sans-serif;
+  font-size:16px;
+  color:var(--ink)!important;
+  font-weight:700;
+  line-height:1;
+}
 .day.is-holiday .num{color:#b94a3e!important}
 
 .lunar-info{
@@ -178,24 +189,21 @@ function getLunarDetails(y, m, d) {
       if (p.type === 'day') dayNum = parseInt(p.value);
     }
     
-    // 計算一般農曆顯示名稱
     let dayNames = ["","初一","初二","初三","初四","初五","初六","初七","初八","初九","初十","十一","十二","十三","十四","十五","十六","十七","十八","十九","二十","廿一","廿二","廿三","廿四","廿五","廿六","廿七","廿八","廿九","三十"];
     let monthNames = ["","正月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","臘月"];
     lunarObj.text = (dayNum === 1) ? monthNames[monthNum] : (dayNames[dayNum] || "");
 
-    // 判斷傳統三大節與農曆節日
     if (monthNum === 1 && dayNum === 1) lunarObj.festival = "初一";
     else if (monthNum === 1 && dayNum === 2) lunarObj.festival = "初二";
     else if (monthNum === 1 && dayNum === 3) lunarObj.festival = "初三";
     else if (monthNum === 1 && dayNum === 15) lunarObj.festival = "元宵節";
-    else if (monthNum === 5 && dayNum === 5) lunarObj.festival = "端午節"; // 三大節
+    else if (monthNum === 5 && dayNum === 5) lunarObj.festival = "端午節";
     else if (monthNum === 7 && dayNum === 7) lunarObj.festival = "七夕";
     else if (monthNum === 7 && dayNum === 15) lunarObj.festival = "中元節";
-    else if (monthNum === 8 && dayNum === 15) lunarObj.festival = "中秋節"; // 三大節
+    else if (monthNum === 8 && dayNum === 15) lunarObj.festival = "中秋節";
     else if (monthNum === 9 && dayNum === 9) lunarObj.festival = "重陽節";
     else if (monthNum === 12 && dayNum === 8) lunarObj.festival = "臘八節";
     
-    // 判斷除夕（正月初一的前一天）
     let nextDate = new Date(y, m, d + 1);
     let nextParts = formatter.formatToParts(nextDate);
     let nextM = 0, nextD = 0;
@@ -204,7 +212,7 @@ function getLunarDetails(y, m, d) {
       if (p.type === 'day') nextD = parseInt(p.value);
     }
     if (nextM === 1 && nextD === 1) {
-      lunarObj.festival = "除夕"; // 三大節（春節）
+      lunarObj.festival = "除夕";
     }
 
   } catch(e) {
@@ -256,7 +264,6 @@ function render(){
     let term = getSolarTerm(y, m, d);
     let solarHoliday = getSolarHoliday(m, d);
 
-    // 優先權：國定陽曆節日 / 農曆三大節節日 -> 二十四節氣 -> 普通農曆
     let rightText = solarHoliday || lunarInfo.festival || term || lunarInfo.text;
     let isHighlight = !!solarHoliday || !!lunarInfo.festival || !!term;
 
