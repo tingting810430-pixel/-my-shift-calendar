@@ -29,14 +29,14 @@ h1{font:500 28px Georgia,"Noto Serif TC",serif;color:var(--deep);margin:4px 0 16
 .s-amber{color:#c2410c!important}
 .s-purple{color:#6b21a8!important}
 
-/* 假的類別顏色 */
+/* 休假與其他類別顏色 */
 .off{color:#6b5f49!important}
 .leave{color:#334155!important}
 .sick{color:#b91c1c!important}
 .other{color:#5b21b6!important}
 .note{font-size:9px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* 底部直接展開選單 */
+/* 底部展開面板 */
 .bottom-panel{position:fixed;bottom:0;left:0;right:0;background:var(--paper);border-top:1px solid var(--line);border-radius:20px 20px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -5px 25px #0000001a;display:none;z-index:100}
 .bottom-panel.show{display:block}
 .panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:13px;font-weight:600;color:var(--deep)}
@@ -58,7 +58,7 @@ h1{font:500 28px Georgia,"Noto Serif TC",serif;color:var(--deep);margin:4px 0 16
 <body>
 <div class="app">
 <div class="sub">MY SHIFT JOURNAL</div><h1>我的班表</h1>
-<div class="bar"><button id="prev">‹</button><div class="title"><b id="mt"></b><small>長按拖曳可連續選取日期</small></div><button id="next">›</button></div>
+<div class="bar"><button id="prev">‹</button><div class="title"><b id="mt"></b><small>可單點多選或長按滑動選取日期</small></div><button id="next">›</button></div>
 <div class="week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
 <div class="cal" id="cal"></div>
 </div>
@@ -96,7 +96,9 @@ h1{font:500 28px Georgia,"Noto Serif TC",serif;color:var(--deep);margin:4px 0 16
 const K="shift-pwa-v1";let D=JSON.parse(localStorage.getItem(K)||"{}"),V=new Date();V.setDate(1);
 let selectedSet=new Set();
 let currentType="work", currentTime="09:00 18:00";
+
 let dragStartDay = null, isDragging = false;
+let startX = 0, startY = 0;
 
 const SHIFT_COLORS = {
   "09:00 18:00": "s-green",
@@ -133,8 +135,6 @@ function render(){
   updatePanel();
 }
 
-const calGrid = $("cal");
-
 function getDayFromPoint(x, y) {
   let el = document.elementFromPoint(x, y);
   if (!el) return null;
@@ -142,43 +142,54 @@ function getDayFromPoint(x, y) {
   return dayEl ? parseInt(dayEl.dataset.day) : null;
 }
 
-function selectRange(start, end) {
-  let min = Math.min(start, end);
-  let max = Math.max(start, end);
-  let y=V.getFullYear(), m=V.getMonth();
-  for (let d = min; d <= max; d++) {
-    selectedSet.add(id(y, m, d));
-  }
-  render();
-}
+const calGrid = $("cal");
 
 calGrid.addEventListener("pointerdown", e => {
   let day = getDayFromPoint(e.clientX, e.clientY);
-  if (day) {
-    let y=V.getFullYear(), m=V.getMonth();
-    let key = id(y, m, day);
-    if (selectedSet.has(key) && selectedSet.size === 1) {
-      selectedSet.delete(key);
-      render();
-      return;
-    }
-    dragStartDay = day;
-    isDragging = true;
-  }
+  if (!day) return;
+  dragStartDay = day;
+  startX = e.clientX;
+  startY = e.clientY;
+  isDragging = false;
 });
 
 calGrid.addEventListener("pointermove", e => {
-  if (!isDragging || !dragStartDay) return;
-  let day = getDayFromPoint(e.clientX, e.clientY);
-  if (day) selectRange(dragStartDay, day);
+  if (!dragStartDay) return;
+  let dist = Math.hypot(e.clientX - startX, e.clientY - startY);
+  if (dist > 8) isDragging = true;
+  
+  if (isDragging) {
+    let currentDay = getDayFromPoint(e.clientX, e.clientY);
+    if (currentDay) {
+      let min = Math.min(dragStartDay, currentDay);
+      let max = Math.max(dragStartDay, currentDay);
+      let y = V.getFullYear(), m = V.getMonth();
+      for (let d = min; d <= max; d++) {
+        selectedSet.add(id(y, m, d));
+      }
+      render();
+    }
+  }
 });
 
-window.addEventListener("pointerup", () => {
-  if (isDragging && dragStartDay) {
-    let y=V.getFullYear(), m=V.getMonth();
-    if (selectedSet.size === 0) selectedSet.add(id(y, m, dragStartDay));
+window.addEventListener("pointerup", e => {
+  if (dragStartDay && !isDragging) {
+    let y = V.getFullYear(), m = V.getMonth();
+    let key = id(y, m, dragStartDay);
+    if (selectedSet.has(key)) {
+      selectedSet.delete(key);
+    } else {
+      selectedSet.add(key);
+    }
+    render();
   }
-  isDragging = false; dragStartDay = null; render();
+  dragStartDay = null;
+  isDragging = false;
+});
+
+window.addEventListener("pointercancel", () => {
+  dragStartDay = null;
+  isDragging = false;
 });
 
 function updatePanel(){
@@ -233,7 +244,6 @@ $("prev").onclick=()=>{V.setMonth(V.getMonth()-1);selectedSet.clear();render()};
 $("next").onclick=()=>{V.setMonth(V.getMonth()+1);selectedSet.clear();render()};
 render();
 
-// 註冊 Service Worker
 if("serviceWorker" in navigator){
   navigator.serviceWorker.register("sw.js").catch(err=>console.log("SW Register Fail:", err));
 }
