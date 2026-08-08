@@ -1,20 +1,10 @@
-const CACHE_NAME = 'shift-calendar-v1';
-const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json'
-];
+const CACHE_NAME = 'shift-calendar-v2'; // 更新版本號
 
-// 安裝並快取資源
+// 安裝時跳過等待，立即啟用新 SW
 self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
-  );
+  self.skipWaiting();
 });
 
-// 啟動並清理舊快取
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -25,15 +15,19 @@ self.addEventListener('activate', (e) => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
-// 攔截請求，優行使用快取（實現無網路離線開啟）
+// 網路優先策略：先抓最新檔案，抓不到才用快取（離線時）
 self.addEventListener('fetch', (e) => {
   e.respondWith(
-    caches.match(e.request).then((response) => {
-      return response || fetch(e.request);
-    })
+    fetch(e.request)
+      .then((response) => {
+        const resClone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(e.request, resClone));
+        return response;
+      })
+      .catch(() => caches.match(e.request))
   );
 });
