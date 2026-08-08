@@ -35,26 +35,46 @@ h1{font:500 28px Georgia,"Noto Serif TC",serif;color:var(--deep);margin:4px 0 16
   background:#FAFBFB;
   border:1px solid var(--line);
   border-radius:10px;
-  padding:4px 2px;
+  padding:5px 4px;
   cursor:pointer;
   position:relative;
   transition:all .15s ease;
   touch-action:none;
   display:flex;
   flex-direction:column;
-  align-items:center;
   justify-content:flex-start;
   color:#1A1A1A!important;
 }
 .empty{background:transparent!important;border:0!important;pointer-events:none}
 .day.selected{outline:3px solid var(--deep);box-shadow:0 2px 8px #33415540;z-index:2}
 
-/* 假日/節氣標籤與數字排版 */
-.holiday-tag{font-size:9px;color:#c53030;font-weight:700;line-height:1;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+/* 頂部單行區域 (數字靠左，農曆/節氣靠右) */
+.day-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  width:100%;
+  margin-bottom:4px;
+}
+
 .num{font:16px Georgia,serif;color:#1A1A1A!important;font-weight:600;line-height:1}
 .day.is-holiday .num{color:#c53030!important}
-.today .num{display:inline-flex;background:#1A1A1A;color:#fff!important;width:22px;height:22px;border-radius:50%;align-items:center;justify-content:center}
-.lunar{font-size:9px;color:#1A1A1A;opacity:0.65;margin-top:2px;line-height:1}
+.today .num{display:inline-flex;background:#1A1A1A;color:#fff!important;width:20px;height:20px;border-radius:50%;align-items:center;justify-content:center}
+
+.lunar-info{
+  font-size:10px;
+  color:#1A1A1A;
+  opacity:0.75;
+  line-height:1;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.lunar-info.highlight{
+  color:#c53030;
+  font-weight:700;
+  opacity:1;
+}
 
 /* 整格填滿顏色 (四色) */
 .c-mist{background:#BED3D4!important}      /* 09:00 18:00 - MIST */
@@ -146,7 +166,7 @@ const SHIFT_COLORS = {
 const $=x=>document.getElementById(x),pad=x=>String(x).padStart(2,"0"),id=(y,m,d)=>`${y}-${pad(m+1)}-${pad(d)}`;
 function esc(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
 
-/* --- 原生 Intl 農曆與節氣計算 --- */
+/* --- 農曆計算 --- */
 function getLunarInfo(y, m, d) {
   let date = new Date(y, m, d);
   let lunarStr = "";
@@ -179,7 +199,7 @@ function getHoliday(m, d) {
   let key = `${pad(m + 1)}-${pad(d)}`;
   let holidays = {
     "01-01": "元旦", "02-28": "和平紀念日", "04-04": "兒童節",
-    "05-01": "勞動節", "10-10": "國慶日"
+    "05-01": "勞動節", "08-08": "父親節", "10-10": "國慶日"
   };
   return holidays[key] || "";
 }
@@ -198,22 +218,26 @@ function render(){
     let lunarStr = getLunarInfo(y, m, d);
     let term = getSolarTerm(y, m, d);
     let holiday = getHoliday(m, d);
-    let isNationalHoliday = !!holiday;
 
-    if (!holiday && term) holiday = term;
+    // 優先順序：節日 -> 節氣 -> 農曆
+    let rightText = holiday || term || lunarStr;
+    let isHighlight = !!holiday || !!term;
 
     let colorClass = "";
     if(r){
       colorClass = r.type==="work" ? (SHIFT_COLORS[r.shift] || "c-mist") : r.type;
     }
 
-    e.className="day "+colorClass+(y==t.getFullYear()&&m==t.getMonth()&&d==t.getDate()?" today":"")+(isSelected?" selected":"")+(isNationalHoliday?" is-holiday":"");
+    e.className="day "+colorClass+(y==t.getFullYear()&&m==t.getMonth()&&d==t.getDate()?" today":"")+(isSelected?" selected":"")+(isHighlight?" is-holiday":"");
     e.dataset.day = d;
     e.dataset.key = dateKey;
     
-    let html = holiday ? `<div class="holiday-tag">${holiday}</div>` : `<div class="holiday-tag">&nbsp;</div>`;
-    html += `<div class="num">${d}</div>`;
-    html += `<div class="lunar">${lunarStr}</div>`;
+    let html = `
+      <div class="day-header">
+        <span class="num">${d}</span>
+        <span class="lunar-info ${isHighlight ? 'highlight' : ''}">${rightText}</span>
+      </div>
+    `;
 
     if(r){
       let text=r.type==="work"?r.shift:{off:"休假",leave:"特休",sick:"病假",other:"其他"}[r.type];
