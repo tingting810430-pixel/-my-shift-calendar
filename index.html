@@ -36,10 +36,12 @@ h1{font:500 28px 'Quicksand',Georgia,"Noto Serif TC",serif;color:var(--deep);mar
 .week{margin:14px 0 7px;color:var(--muted);font-size:11px;text-align:center}
 .cal .day{
   min-height:96px;
+  width:100%;             /* 固定每個格子等寬 */
+  min-width:0;            /* 防止內容溢出撐大格子 */
   background:#FAF7F2;
   border:1px solid var(--line);
   border-radius:10px;
-  padding:5px 4px;
+  padding:5px 3px;
   cursor:pointer;
   position:relative;
   transition:all .15s ease;
@@ -59,26 +61,31 @@ h1{font:500 28px 'Quicksand',Georgia,"Noto Serif TC",serif;color:var(--deep);mar
   align-items:baseline;
   width:100%;
   margin-bottom:4px;
+  gap:2px;
 }
 
-/* 替換為 Quicksand 圓潤數字字體 */
+/* Quicksand 圓潤數字字體 */
 .num{
   font-family:'Quicksand', -apple-system, sans-serif;
-  font-size:16px;
+  font-size:15px;
   color:var(--ink)!important;
   font-weight:700;
   line-height:1;
+  flex-shrink:0;          /* 防止數字被壓縮 */
 }
 .day.is-holiday .num{color:#b94a3e!important}
 
 .lunar-info{
-  font-size:10px;
+  font-size:9px;
   color:var(--ink);
   opacity:0.75;
   line-height:1;
   white-space:nowrap;
   overflow:hidden;
-  text-overflow:ellipsis;
+  text-overflow:ellipsis; /* 長字自動省略，不撐大框框 */
+  text-align:right;
+  flex:1;
+  min-width:0;
 }
 .lunar-info.highlight{
   color:#b94a3e;
