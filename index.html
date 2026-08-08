@@ -62,7 +62,7 @@ body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink
 .bar{display:flex;align-items:center;justify-content:space-between;background:#FAF7F2f2;border:1px solid var(--line);border-radius:18px;padding:10px 12px;box-shadow:0 8px 25px #6c524514}
 .bar button{border:0;background:var(--soft);color:var(--deep);width:40px;height:40px;border-radius:50%;font-size:22px;cursor:pointer}.title{text-align:center}.title b{font:500 23px 'Quicksand',Georgia,"Noto Serif TC",serif}.title small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
 
-/* 頂部固定內嵌控制區（位於 Bar 與 Week 之間） */
+/* 頂部固定內嵌控制區（無套用按鈕，即即畫） */
 .control-panel{
   display:none;
   background:#FAF7F2f2;
@@ -78,12 +78,11 @@ body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink
 .type-group::-webkit-scrollbar, .time-group::-webkit-scrollbar{display:none}
 .chip{padding:6px 13px;border:1px solid var(--line);border-radius:16px;font-size:12px;background:#fff;color:var(--ink);cursor:pointer;white-space:nowrap;flex-shrink:0}
 .chip.active{background:var(--deep);color:#fff;border-color:var(--deep)}
+.chip.clear-chip{background:#EADEC9;color:var(--deep);border-color:#D8C7B3;font-weight:700}
+.chip.clear-chip.active{background:#b94a3e;color:#fff;border-color:#b94a3e}
 
 .action-row{display:flex;gap:8px;align-items:center;margin-top:4px}
 .note-input{flex:1;padding:7px 12px;border:1px solid var(--line);border-radius:10px;font-size:12px;background:#F3EBE1;color:var(--ink);outline:none}
-.btn-action{padding:7px 14px;border:0;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
-.btn-save{background:var(--deep);color:#fff}
-.btn-clear{background:#EADEC9;color:var(--deep)}
 
 /* 日曆表格 */
 .week,.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
@@ -106,7 +105,6 @@ body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink
   color:var(--ink)!important;
 }
 .empty{background:transparent!important;border:0!important;pointer-events:none}
-.day.selected{outline:3px solid var(--deep);box-shadow:0 2px 8px #6c524540;z-index:2}
 
 .day-header{
   display:flex;
@@ -193,7 +191,7 @@ body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink
     <button id="next">›</button>
   </div>
 
-  <!-- 頂部固定內嵌選項控制區（月曆 Bar 正下方） -->
+  <!-- 頂部固定內嵌選項控制區（直覺畫筆） -->
   <div class="control-panel" id="controlPanel">
     <div class="type-group" id="typeGroup">
       <div class="chip active" data-type="work">上班</div>
@@ -201,6 +199,7 @@ body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink
       <div class="chip" data-type="leave">特休</div>
       <div class="chip" data-type="sick">病假</div>
       <div class="chip" data-type="other">其他</div>
+      <div class="chip clear-chip" data-type="clear">清除橡皮擦</div>
     </div>
 
     <div class="time-group" id="timeGroup">
@@ -211,9 +210,7 @@ body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink
     </div>
 
     <div class="action-row">
-      <input type="text" class="note-input" id="noteInput" placeholder="備註（選填）">
-      <button class="btn-action btn-clear" id="clearBtn">清除紀錄</button>
-      <button class="btn-action btn-save" id="saveBtn">套用 (<span id="batchCount">0</span>)</button>
+      <input type="text" class="note-input" id="noteInput" placeholder="填寫備註（直接點月曆填入）">
     </div>
   </div>
 
@@ -231,7 +228,6 @@ let D = JSON.parse(localStorage.getItem(K) || "{}");
 let V = new Date();
 V.setDate(1);
 
-let selectedSet = new Set();
 let currentType = "work";
 let currentTime = "09:00 18:00";
 let isEditMode = false;
@@ -239,21 +235,19 @@ let isEditMode = false;
 let dragStartDay = null;
 let isDragging = false;
 let startX = 0, startY = 0;
-let dragAction = "select";
 
 $("modeBtn").onclick = () => {
   isEditMode = !isEditMode;
   if (isEditMode) {
     $("modeBtn").classList.add("is-edit");
     $("modeText").textContent = "編輯模式";
-    $("hintText").textContent = "選取班別後，點擊或滑動日期進行套用或清除";
+    $("hintText").textContent = "選擇上方班別，直接點擊或划過日期即可畫上班表";
     $("controlPanel").classList.add("show");
   } else {
     $("modeBtn").classList.remove("is-edit");
     $("modeText").textContent = "鎖定模式";
     $("hintText").textContent = "已鎖定，點擊右上角解鎖編輯";
     $("controlPanel").classList.remove("show");
-    selectedSet.clear();
   }
   render();
 };
@@ -357,7 +351,6 @@ function render(){
     let dateKey=id(y,m,d);
     let e=document.createElement("div");
     let r=D[dateKey];
-    let isSelected=selectedSet.has(dateKey);
     
     let lunarInfo = getLunarDetails(y, m, d);
     let term = getSolarTerm(y, m, d);
@@ -366,7 +359,7 @@ function render(){
     let rightText = solarHoliday || lunarInfo.festival || term || lunarInfo.text;
     let isHighlight = !!solarHoliday || !!lunarInfo.festival || !!term;
 
-    e.className="day"+(isSelected?" selected":"")+(isHighlight?" is-holiday":"");
+    e.className="day"+(isHighlight?" is-holiday":"");
     e.dataset.day = d;
     e.dataset.key = dateKey;
     
@@ -405,7 +398,6 @@ function render(){
     e.innerHTML = html;
     $("cal").appendChild(e);
   }
-  $("batchCount").textContent = selectedSet.size;
 }
 
 function getDayFromPoint(x, y) {
@@ -413,6 +405,19 @@ function getDayFromPoint(x, y) {
   if (!el) return null;
   let dayEl = el.closest(".day:not(.empty)");
   return dayEl ? parseInt(dayEl.dataset.day) : null;
+}
+
+function applyShiftToDay(dayNum) {
+  let y = V.getFullYear(), m = V.getMonth();
+  let key = id(y, m, dayNum);
+  let noteText = $("noteInput").value.trim();
+
+  if (currentType === "clear") {
+    delete D[key];
+  } else {
+    D[key] = { type: currentType, shift: currentTime, note: noteText };
+  }
+  localStorage.setItem(K, JSON.stringify(D));
 }
 
 const calGrid = $("cal");
@@ -427,9 +432,8 @@ calGrid.addEventListener("pointerdown", e => {
   startY = e.clientY;
   isDragging = false;
 
-  let y = V.getFullYear(), m = V.getMonth();
-  let startKey = id(y, m, dragStartDay);
-  dragAction = selectedSet.has(startKey) ? "deselect" : "select";
+  applyShiftToDay(day);
+  render();
 });
 
 calGrid.addEventListener("pointermove", e => {
@@ -442,33 +446,16 @@ calGrid.addEventListener("pointermove", e => {
     if (currentDay) {
       let min = Math.min(dragStartDay, currentDay);
       let max = Math.max(dragStartDay, currentDay);
-      let y = V.getFullYear(), m = V.getMonth();
 
       for (let d = min; d <= max; d++) {
-        let key = id(y, m, d);
-        if (dragAction === "select") {
-          selectedSet.add(key);
-        } else {
-          selectedSet.delete(key);
-        }
+        applyShiftToDay(d);
       }
       render();
     }
   }
 });
 
-window.addEventListener("pointerup", e => {
-  if (!isEditMode) return;
-  if (dragStartDay && !isDragging) {
-    let y = V.getFullYear(), m = V.getMonth();
-    let key = id(y, m, dragStartDay);
-    if (selectedSet.has(key)) {
-      selectedSet.delete(key);
-    } else {
-      selectedSet.add(key);
-    }
-    render();
-  }
+window.addEventListener("pointerup", () => {
   dragStartDay = null;
   isDragging = false;
 });
@@ -495,29 +482,8 @@ document.querySelectorAll("#timeGroup .chip").forEach(chip=>{
   }
 });
 
-$("saveBtn").onclick=()=>{
-  if(selectedSet.size === 0) return;
-  let noteText=$("noteInput").value.trim();
-  selectedSet.forEach(k=>{
-    D[k]={type:currentType,shift:currentTime,note:noteText};
-  });
-  localStorage.setItem(K,JSON.stringify(D));
-  selectedSet.clear();
-  $("noteInput").value="";
-  render();
-};
-
-$("clearBtn").onclick=()=>{
-  if(selectedSet.size === 0) return;
-  selectedSet.forEach(k=>{ delete D[k]; });
-  localStorage.setItem(K,JSON.stringify(D));
-  selectedSet.clear();
-  $("noteInput").value="";
-  render();
-};
-
-$("prev").onclick=()=>{V.setMonth(V.getMonth()-1);selectedSet.clear();render()};
-$("next").onclick=()=>{V.setMonth(V.getMonth()+1);selectedSet.clear();render()};
+$("prev").onclick=()=>{V.setMonth(V.getMonth()-1);render()};
+$("next").onclick=()=>{V.setMonth(V.getMonth()+1);render()};
 render();
 
 if("serviceWorker" in navigator){
