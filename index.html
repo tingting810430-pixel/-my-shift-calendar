@@ -26,7 +26,7 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
 body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC",sans-serif}
-.app{max-width:980px;margin:auto;padding:calc(18px + env(safe-area-inset-top)) 10px calc(30px + env(safe-area-inset-bottom))}
+.app{max-width:980px;margin:auto;padding:calc(18px + env(safe-area-inset-top)) 10px calc(40px + env(safe-area-inset-bottom))}
 
 /* 標題與模式按鈕區域 */
 .header-row{
@@ -62,29 +62,6 @@ body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink
 .bar{display:flex;align-items:center;justify-content:space-between;background:#FAF7F2f2;border:1px solid var(--line);border-radius:18px;padding:10px 12px;box-shadow:0 8px 25px #6c524514}
 .bar button{border:0;background:var(--soft);color:var(--deep);width:40px;height:40px;border-radius:50%;font-size:22px;cursor:pointer}.title{text-align:center}.title b{font:500 23px 'Quicksand',Georgia,"Noto Serif TC",serif}.title small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
 
-/* 頂部固定內嵌控制區（非彈窗） */
-.control-panel{
-  display:none;
-  background:#FAF7F2f2;
-  border:1px solid var(--line);
-  border-radius:18px;
-  padding:12px;
-  margin-top:10px;
-  box-shadow:0 6px 20px #6c524510;
-}
-.control-panel.show{display:block}
-
-.type-group,.time-group{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px}
-.type-group::-webkit-scrollbar, .time-group::-webkit-scrollbar{display:none}
-.chip{padding:6px 13px;border:1px solid var(--line);border-radius:16px;font-size:12px;background:#fff;color:var(--ink);cursor:pointer;white-space:nowrap;flex-shrink:0}
-.chip.active{background:var(--deep);color:#fff;border-color:var(--deep)}
-
-.action-row{display:flex;gap:8px;align-items:center;margin-top:4px}
-.note-input{flex:1;padding:7px 12px;border:1px solid var(--line);border-radius:10px;font-size:12px;background:#F3EBE1;color:var(--ink);outline:none}
-.btn-action{padding:7px 14px;border:0;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
-.btn-save{background:var(--deep);color:#fff}
-.btn-clear{background:#EADEC9;color:var(--deep)}
-
 /* 日曆表格 */
 .week,.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .week{margin:14px 0 7px;color:var(--muted);font-size:11px;text-align:center}
@@ -107,6 +84,29 @@ body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink
 }
 .empty{background:transparent!important;border:0!important;pointer-events:none}
 .day.selected{outline:3px solid var(--deep);box-shadow:0 2px 8px #6c524540;z-index:2}
+
+/* 底部內嵌控制區（位於月曆正下方） */
+.control-panel{
+  display:none;
+  background:#FAF7F2f2;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:14px;
+  margin-top:16px;
+  box-shadow:0 6px 20px #6c524510;
+}
+.control-panel.show{display:block}
+
+.type-group,.time-group{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px}
+.type-group::-webkit-scrollbar, .time-group::-webkit-scrollbar{display:none}
+.chip{padding:7px 14px;border:1px solid var(--line);border-radius:16px;font-size:12px;background:#fff;color:var(--ink);cursor:pointer;white-space:nowrap;flex-shrink:0}
+.chip.active{background:var(--deep);color:#fff;border-color:var(--deep)}
+
+.action-row{display:flex;gap:8px;align-items:center;margin-top:4px}
+.note-input{flex:1;padding:8px 12px;border:1px solid var(--line);border-radius:10px;font-size:12px;background:#F3EBE1;color:var(--ink);outline:none}
+.btn-action{padding:8px 16px;border:0;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn-save{background:var(--deep);color:#fff}
+.btn-clear{background:#EADEC9;color:var(--deep)}
 
 .day-header{
   display:flex;
@@ -193,7 +193,10 @@ body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink
     <button id="next">›</button>
   </div>
 
-  <!-- 嵌入於頁面主體的選項控制區（非彈窗） -->
+  <div class="week"><span>週日</span><span>週一</span><span>週二</span><span>週三</span><span>週四</span><span>週五</span><span>週六</span></div>
+  <div class="cal" id="cal"></div>
+
+  <!-- 內嵌於月曆下方（紅圈處）的選項控制區 -->
   <div class="control-panel" id="controlPanel">
     <div class="type-group" id="typeGroup">
       <div class="chip active" data-type="work">上班</div>
@@ -216,9 +219,6 @@ body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink
       <button class="btn-action btn-save" id="saveBtn">套用 (<span id="batchCount">0</span>)</button>
     </div>
   </div>
-
-  <div class="week"><span>週日</span><span>週一</span><span>週二</span><span>週三</span><span>週四</span><span>週五</span><span>週六</span></div>
-  <div class="cal" id="cal"></div>
 </div>
 
 <script>
@@ -246,7 +246,7 @@ $("modeBtn").onclick = () => {
   if (isEditMode) {
     $("modeBtn").classList.add("is-edit");
     $("modeText").textContent = "編輯模式";
-    $("hintText").textContent = "選擇下方班別/時間，單點或滑動日期設定";
+    $("hintText").textContent = "單點或滑動日期後，至下方點擊套用";
     $("controlPanel").classList.add("show");
   } else {
     $("modeBtn").classList.remove("is-edit");
