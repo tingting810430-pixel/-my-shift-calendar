@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#5f8f88">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="我的班表">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>我的班表</title>
+<style>
+:root{--deep:#47756f;--main:#6f9e97;--soft:#dcebe7;--paper:#fffdf8;--ink:#40504d;--muted:#8b9995;--line:#e5ebe7}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+body{margin:0;background:linear-gradient(145deg,#eef4f1,#f8f6ef);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC",sans-serif}
+.app{max-width:980px;margin:auto;padding:calc(18px + env(safe-area-inset-top)) 10px calc(240px + env(safe-area-inset-bottom))}
+h1{font:500 28px Georgia,"Noto Serif TC",serif;color:var(--deep);margin:4px 0 16px}.sub{font-size:11px;letter-spacing:.18em;color:var(--main)}
+.bar{display:flex;align-items:center;justify-content:space-between;background:#fffdf8dd;border:1px solid var(--line);border-radius:18px;padding:10px 12px;box-shadow:0 8px 25px #435b560f}
+.bar button{border:0;background:var(--soft);color:var(--deep);width:40px;height:40px;border-radius:50%;font-size:22px;cursor:pointer}.title{text-align:center}.title b{font:500 23px Georgia,"Noto Serif TC",serif}.title small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.week,.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.week{margin:14px 0 7px;color:var(--muted);font-size:11px;text-align:center}.cal .day{min-height:92px;background:#fffdf8ed;border:1px solid var(--line);border-radius:12px;padding:7px;cursor:pointer;position:relative;transition:all .15s ease;touch-action:none}.empty{background:transparent!important;border:0!important;pointer-events:none}
+.day.selected{border:2px solid var(--deep);background:#e3f0ed!important;box-shadow:0 2px 8px #47756f33}
+.num{font:18px Georgia,serif;color:var(--deep)}.today .num{display:inline-flex;background:var(--deep);color:#fff;width:28px;height:28px;border-radius:50%;align-items:center;justify-content:center}
+.entry{margin-top:7px;padding:4px 0;border-radius:8px;font-size:10px;line-height:1.35;font-weight:700;background:transparent!important}
+
+/* 班別文字顏色 */
+.s-green{color:#1e5e54!important}
+.s-blue{color:#1d4ed8!important}
+.s-amber{color:#c2410c!important}
+.s-purple{color:#6b21a8!important}
+
+/* 假的類別顏色 */
+.off{color:#6b5f49!important}
+.leave{color:#334155!important}
+.sick{color:#b91c1c!important}
+.other{color:#5b21b6!important}
+.note{font-size:9px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* 底部直接展開選單 */
+.bottom-panel{position:fixed;bottom:0;left:0;right:0;background:var(--paper);border-top:1px solid var(--line);border-radius:20px 20px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -5px 25px #0000001a;display:none;z-index:100}
+.bottom-panel.show{display:block}
+.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:13px;font-weight:600;color:var(--deep)}
+.panel-cancel{background:transparent;border:0;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline}
+
+.type-group,.time-group{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px}
+.chip{padding:7px 14px;border:1px solid var(--line);border-radius:20px;font-size:12px;background:#fff;color:var(--ink);cursor:pointer;white-space:nowrap;flex-shrink:0}
+.chip.active{background:var(--deep);color:#fff;border-color:var(--deep)}
+
+.note-input{width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:10px;font-size:12px;background:#fbfcf9;margin-bottom:10px}
+.btn-row{display:flex;gap:8px}
+.btn-row button{flex:1;padding:10px;border:0;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer}
+.btn-save{background:var(--deep);color:#fff}
+.btn-clear{background:#edf1ee;color:var(--deep)}
+
+@media(min-width:650px){.app{padding:30px 16px 240px}.cal{gap:8px}.week{gap:8px}.cal .day{min-height:110px;padding:10px}.entry{font-size:12px}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="sub">MY SHIFT JOURNAL</div><h1>我的班表</h1>
+<div class="bar"><button id="prev">‹</button><div class="title"><b id="mt"></b><small>長按拖曳可連續選取日期</small></div><button id="next">›</button></div>
+<div class="week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+<div class="cal" id="cal"></div>
+</div>
+
+<div class="bottom-panel" id="panel">
+  <div class="panel-head">
+    <span id="batchCount">已選擇 0 天</span>
+    <button class="panel-cancel" id="cancelBatch">取消選擇</button>
+  </div>
+  
+  <div class="type-group" id="typeGroup">
+    <div class="chip active" data-type="work">上班</div>
+    <div class="chip" data-type="off">休假</div>
+    <div class="chip" data-type="leave">特休</div>
+    <div class="chip" data-type="sick">病假</div>
+    <div class="chip" data-type="other">其他</div>
+  </div>
+
+  <div class="time-group" id="timeGroup">
+    <div class="chip active" data-time="09:00 18:00">09:00 18:00</div>
+    <div class="chip" data-time="10:00 19:00">10:00 19:00</div>
+    <div class="chip" data-time="11:00 21:00">11:00 21:00</div>
+    <div class="chip" data-time="12:00 21:00">12:00 21:00</div>
+  </div>
+
+  <input type="text" class="note-input" id="noteInput" placeholder="填寫備註（可不填）">
+
+  <div class="btn-row">
+    <button class="btn-clear" id="clearBtn">清除紀錄</button>
+    <button class="btn-save" id="saveBtn">儲存套用</button>
+  </div>
+</div>
+
+<script>
+const K="shift-pwa-v1";let D=JSON.parse(localStorage.getItem(K)||"{}"),V=new Date();V.setDate(1);
+let selectedSet=new Set();
+let currentType="work", currentTime="09:00 18:00";
+let dragStartDay = null, isDragging = false;
+
+const SHIFT_COLORS = {
+  "09:00 18:00": "s-green",
+  "10:00 19:00": "s-blue",
+  "11:00 21:00": "s-amber",
+  "12:00 21:00": "s-purple"
+};
+
+const $=x=>document.getElementById(x),pad=x=>String(x).padStart(2,"0"),id=(y,m,d)=>`${y}-${pad(m+1)}-${pad(d)}`;
+function esc(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+
+function render(){
+  let y=V.getFullYear(),m=V.getMonth(),first=new Date(y,m,1).getDay(),last=new Date(y,m+1,0).getDate(),t=new Date();
+  $("mt").textContent=`${y} 年 ${m+1} 月`;$("cal").innerHTML="";
+  for(let i=0;i<first;i++)$("cal").appendChild(Object.assign(document.createElement("div"),{className:"day empty"}));
+  
+  for(let d=1;d<=last;d++){
+    let dateKey=id(y,m,d);
+    let e=document.createElement("div");
+    let r=D[dateKey];
+    let isSelected=selectedSet.has(dateKey);
+    
+    e.className="day"+(y==t.getFullYear()&&m==t.getMonth()&&d==t.getDate()?" today":"")+(isSelected?" selected":"");
+    e.dataset.day = d;
+    e.dataset.key = dateKey;
+    e.innerHTML=`<div class="num">${d}</div>`;
+    if(r){
+      let text=r.type==="work"?r.shift:{off:"休假",leave:"特休",sick:"病假",other:"其他"}[r.type];
+      let colorClass = r.type==="work" ? (SHIFT_COLORS[r.shift] || "s-green") : r.type;
+      e.innerHTML+=`<div class="entry ${colorClass}">${text}</div>`+(r.note?`<div class="note">${esc(r.note)}</div>`:"");
+    }
+    $("cal").appendChild(e);
+  }
+  updatePanel();
+}
+
+const calGrid = $("cal");
+
+function getDayFromPoint(x, y) {
+  let el = document.elementFromPoint(x, y);
+  if (!el) return null;
+  let dayEl = el.closest(".day:not(.empty)");
+  return dayEl ? parseInt(dayEl.dataset.day) : null;
+}
+
+function selectRange(start, end) {
+  let min = Math.min(start, end);
+  let max = Math.max(start, end);
+  let y=V.getFullYear(), m=V.getMonth();
+  for (let d = min; d <= max; d++) {
+    selectedSet.add(id(y, m, d));
+  }
+  render();
+}
+
+calGrid.addEventListener("pointerdown", e => {
+  let day = getDayFromPoint(e.clientX, e.clientY);
+  if (day) {
+    let y=V.getFullYear(), m=V.getMonth();
+    let key = id(y, m, day);
+    if (selectedSet.has(key) && selectedSet.size === 1) {
+      selectedSet.delete(key);
+      render();
+      return;
+    }
+    dragStartDay = day;
+    isDragging = true;
+  }
+});
+
+calGrid.addEventListener("pointermove", e => {
+  if (!isDragging || !dragStartDay) return;
+  let day = getDayFromPoint(e.clientX, e.clientY);
+  if (day) selectRange(dragStartDay, day);
+});
+
+window.addEventListener("pointerup", () => {
+  if (isDragging && dragStartDay) {
+    let y=V.getFullYear(), m=V.getMonth();
+    if (selectedSet.size === 0) selectedSet.add(id(y, m, dragStartDay));
+  }
+  isDragging = false; dragStartDay = null; render();
+});
+
+function updatePanel(){
+  let count=selectedSet.size;
+  if(count>0){
+    $("batchCount").textContent=`已選擇 ${count} 天`;
+    $("panel").classList.add("show");
+  }else{
+    $("panel").classList.remove("show");
+  }
+}
+
+document.querySelectorAll("#typeGroup .chip").forEach(chip=>{
+  chip.onclick=()=>{
+    document.querySelectorAll("#typeGroup .chip").forEach(c=>c.classList.remove("active"));
+    chip.classList.add("active");
+    currentType=chip.dataset.type;
+    $("timeGroup").style.display = currentType==="work"?"flex":"none";
+  }
+});
+
+document.querySelectorAll("#timeGroup .chip").forEach(chip=>{
+  chip.onclick=()=>{
+    document.querySelectorAll("#timeGroup .chip").forEach(c=>c.classList.remove("active"));
+    chip.classList.add("active");
+    currentTime=chip.dataset.time;
+  }
+});
+
+$("cancelBatch").onclick=()=>{selectedSet.clear();render()};
+
+$("saveBtn").onclick=()=>{
+  let noteText=$("noteInput").value.trim();
+  selectedSet.forEach(k=>{
+    D[k]={type:currentType,shift:currentTime,note:noteText};
+  });
+  localStorage.setItem(K,JSON.stringify(D));
+  selectedSet.clear();
+  $("noteInput").value="";
+  render();
+};
+
+$("clearBtn").onclick=()=>{
+  selectedSet.forEach(k=>{ delete D[k]; });
+  localStorage.setItem(K,JSON.stringify(D));
+  selectedSet.clear();
+  $("noteInput").value="";
+  render();
+};
+
+$("prev").onclick=()=>{V.setMonth(V.getMonth()-1);selectedSet.clear();render()};
+$("next").onclick=()=>{V.setMonth(V.getMonth()+1);selectedSet.clear();render()};
+render();
+
+// 註冊 Service Worker
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").catch(err=>console.log("SW Register Fail:", err));
+}
+</script>
+</body>
+</html>
