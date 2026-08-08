@@ -121,7 +121,7 @@ body{margin:0;background:linear-gradient(145deg,#EADEC9,#FAF7F2);color:var(--ink
   opacity:1;
 }
 
-/* 膠囊班表標籤風格（向上靠） */
+/* 膠囊班表標籤風格 */
 .badge{
   width:100%;
   padding:4px 0;
@@ -238,13 +238,14 @@ let isEditMode = false;
 let dragStartDay = null;
 let isDragging = false;
 let startX = 0, startY = 0;
+let dragAction = "select"; // 'select' 選取 或 'deselect' 取消
 
 $("modeBtn").onclick = () => {
   isEditMode = !isEditMode;
   if (isEditMode) {
     $("modeBtn").classList.add("is-edit");
     $("modeText").textContent = "編輯模式";
-    $("hintText").textContent = "單點或滑動選取日期編輯班表";
+    $("hintText").textContent = "單點或長按滑動選取/取消日期";
   } else {
     $("modeBtn").classList.remove("is-edit");
     $("modeText").textContent = "鎖定模式";
@@ -413,14 +414,22 @@ function getDayFromPoint(x, y) {
 
 const calGrid = $("cal");
 
+/* Pointer 事件：長按與滑動選取/取消邏輯 */
 calGrid.addEventListener("pointerdown", e => {
   if (!isEditMode) return;
   let day = getDayFromPoint(e.clientX, e.clientY);
   if (!day) return;
+  
   dragStartDay = day;
   startX = e.clientX;
   startY = e.clientY;
   isDragging = false;
+
+  let y = V.getFullYear(), m = V.getMonth();
+  let startKey = id(y, m, dragStartDay);
+
+  // 判斷按下的第一個日期是否已選取，以決定接下來的動作是「批次選取」還是「批次取消」
+  dragAction = selectedSet.has(startKey) ? "deselect" : "select";
 });
 
 calGrid.addEventListener("pointermove", e => {
@@ -434,8 +443,14 @@ calGrid.addEventListener("pointermove", e => {
       let min = Math.min(dragStartDay, currentDay);
       let max = Math.max(dragStartDay, currentDay);
       let y = V.getFullYear(), m = V.getMonth();
+
       for (let d = min; d <= max; d++) {
-        selectedSet.add(id(y, m, d));
+        let key = id(y, m, d);
+        if (dragAction === "select") {
+          selectedSet.add(key);
+        } else {
+          selectedSet.delete(key);
+        }
       }
       render();
     }
