@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#5f8f88">
+<meta name="theme-color" content="#70877F">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="我的班表">
@@ -11,33 +11,41 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>我的班表</title>
 <style>
-:root{--deep:#47756f;--main:#6f9e97;--soft:#dcebe7;--paper:#fffdf8;--ink:#40504d;--muted:#8b9995;--line:#e5ebe7}
+:root{
+  --deep:#516861;
+  --main:#70877F;
+  --soft:#E1E8E4;
+  --paper:#F9FAF8;
+  --ink:#414845;
+  --muted:#8C9691;
+  --line:#D9E0DC;
+}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
-body{margin:0;background:linear-gradient(145deg,#eef4f1,#f8f6ef);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC",sans-serif}
+body{margin:0;background:linear-gradient(145deg,#E6ECE8,#F0F2EF);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC",sans-serif}
 .app{max-width:980px;margin:auto;padding:calc(18px + env(safe-area-inset-top)) 10px calc(240px + env(safe-area-inset-bottom))}
 h1{font:500 28px Georgia,"Noto Serif TC",serif;color:var(--deep);margin:4px 0 16px}.sub{font-size:11px;letter-spacing:.18em;color:var(--main)}
-.bar{display:flex;align-items:center;justify-content:space-between;background:#fffdf8dd;border:1px solid var(--line);border-radius:18px;padding:10px 12px;box-shadow:0 8px 25px #435b560f}
+.bar{display:flex;align-items:center;justify-content:space-between;background:#F9FAF8f2;border:1px solid var(--line);border-radius:18px;padding:10px 12px;box-shadow:0 8px 25px #3a47430d}
 .bar button{border:0;background:var(--soft);color:var(--deep);width:40px;height:40px;border-radius:50%;font-size:22px;cursor:pointer}.title{text-align:center}.title b{font:500 23px Georgia,"Noto Serif TC",serif}.title small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
-.week,.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.week{margin:14px 0 7px;color:var(--muted);font-size:11px;text-align:center}.cal .day{min-height:92px;background:#fffdf8ed;border:1px solid var(--line);border-radius:12px;padding:7px;cursor:pointer;position:relative;transition:all .15s ease;touch-action:none}.empty{background:transparent!important;border:0!important;pointer-events:none}
-.day.selected{border:2px solid var(--deep);background:#e3f0ed!important;box-shadow:0 2px 8px #47756f33}
+.week,.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.week{margin:14px 0 7px;color:var(--muted);font-size:11px;text-align:center}.cal .day{min-height:92px;background:#F9FAF8f0;border:1px solid var(--line);border-radius:12px;padding:7px;cursor:pointer;position:relative;transition:all .15s ease;touch-action:none}.empty{background:transparent!important;border:0!important;pointer-events:none}
+.day.selected{border:2px solid var(--deep);background:#E1E9E5!important;box-shadow:0 2px 8px #51686126}
 .num{font:18px Georgia,serif;color:var(--deep)}.today .num{display:inline-flex;background:var(--deep);color:#fff;width:28px;height:28px;border-radius:50%;align-items:center;justify-content:center}
 .entry{margin-top:7px;padding:4px 0;border-radius:8px;font-size:10px;line-height:1.35;font-weight:700;background:transparent!important}
 
-/* 班別文字顏色 */
-.s-green{color:#1e5e54!important}
-.s-blue{color:#1d4ed8!important}
-.s-amber{color:#c2410c!important}
-.s-purple{color:#6b21a8!important}
+/* 莫蘭迪班別配色 */
+.m-green{color:#5A786E!important}   /* 09:00 18:00 - 莫蘭迪灰綠 */
+.m-blue{color:#5C768D!important}    /* 10:00 19:00 - 莫蘭迪風鈴藍 */
+.m-amber{color:#A67C6D!important}   /* 11:00 21:00 - 莫蘭迪陶土赭 */
+.m-purple{color:#7E6B7D!important}  /* 12:00 21:00 - 莫蘭迪煙燻紫 */
 
 /* 休假與其他類別顏色 */
-.off{color:#6b5f49!important}
-.leave{color:#334155!important}
-.sick{color:#b91c1c!important}
-.other{color:#5b21b6!important}
+.off{color:#8A8075!important}
+.leave{color:#6E7B85!important}
+.sick{color:#A06B6B!important}
+.other{color:#796B8A!important}
 .note{font-size:9px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* 底部展開面板 */
-.bottom-panel{position:fixed;bottom:0;left:0;right:0;background:var(--paper);border-top:1px solid var(--line);border-radius:20px 20px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -5px 25px #0000001a;display:none;z-index:100}
+.bottom-panel{position:fixed;bottom:0;left:0;right:0;background:var(--paper);border-top:1px solid var(--line);border-radius:20px 20px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -5px 25px #00000014;display:none;z-index:100}
 .bottom-panel.show{display:block}
 .panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:13px;font-weight:600;color:var(--deep)}
 .panel-cancel{background:transparent;border:0;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline}
@@ -46,11 +54,11 @@ h1{font:500 28px Georgia,"Noto Serif TC",serif;color:var(--deep);margin:4px 0 16
 .chip{padding:7px 14px;border:1px solid var(--line);border-radius:20px;font-size:12px;background:#fff;color:var(--ink);cursor:pointer;white-space:nowrap;flex-shrink:0}
 .chip.active{background:var(--deep);color:#fff;border-color:var(--deep)}
 
-.note-input{width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:10px;font-size:12px;background:#fbfcf9;margin-bottom:10px}
+.note-input{width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:10px;font-size:12px;background:#F4F6F4;margin-bottom:10px}
 .btn-row{display:flex;gap:8px}
 .btn-row button{flex:1;padding:10px;border:0;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer}
 .btn-save{background:var(--deep);color:#fff}
-.btn-clear{background:#edf1ee;color:var(--deep)}
+.btn-clear{background:#E6ECE8;color:var(--deep)}
 
 @media(min-width:650px){.app{padding:30px 16px 240px}.cal{gap:8px}.week{gap:8px}.cal .day{min-height:110px;padding:10px}.entry{font-size:12px}}
 </style>
@@ -101,10 +109,10 @@ let dragStartDay = null, isDragging = false;
 let startX = 0, startY = 0;
 
 const SHIFT_COLORS = {
-  "09:00 18:00": "s-green",
-  "10:00 19:00": "s-blue",
-  "11:00 21:00": "s-amber",
-  "12:00 21:00": "s-purple"
+  "09:00 18:00": "m-green",
+  "10:00 19:00": "m-blue",
+  "11:00 21:00": "m-amber",
+  "12:00 21:00": "m-purple"
 };
 
 const $=x=>document.getElementById(x),pad=x=>String(x).padStart(2,"0"),id=(y,m,d)=>`${y}-${pad(m+1)}-${pad(d)}`;
@@ -127,7 +135,7 @@ function render(){
     e.innerHTML=`<div class="num">${d}</div>`;
     if(r){
       let text=r.type==="work"?r.shift:{off:"休假",leave:"特休",sick:"病假",other:"其他"}[r.type];
-      let colorClass = r.type==="work" ? (SHIFT_COLORS[r.shift] || "s-green") : r.type;
+      let colorClass = r.type==="work" ? (SHIFT_COLORS[r.shift] || "m-green") : r.type;
       e.innerHTML+=`<div class="entry ${colorClass}">${text}</div>`+(r.note?`<div class="note">${esc(r.note)}</div>`:"");
     }
     $("cal").appendChild(e);
